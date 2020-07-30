@@ -3,6 +3,12 @@
   "version": "1.0.0",
   "main": "index.js",
   "license": "UNLICENSED",
+  "engines": {
+    "node": ">=10"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
   "devDependencies": {
     "axios": "^0.19.2"
   }
