@@ -1,0 +1,9 @@
+{
+  "name": "hook-webflow",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "axios": "^0.19.2"
+  }
+}
