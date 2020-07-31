@@ -1,5 +1,8 @@
 ## hook-webflow for Weglot
 
+Script to automatically inject _hreflang_ tags into all pages
+in your webflow project
+
 ### Requirements
 
 `node >=10`
