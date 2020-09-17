@@ -36,6 +36,8 @@ your Webflow or Squarespace website
 
 #### Squarespace
 
+- `user`: Squarespace admin email
+- `password`: Squarespace admin password
 - `projectName`: Slug from Squarespace admin. Go to Squarespace admin page and get
   first piece of current URL: https://GET-THIS.squarespace.com/config/...
   eg. `lobster-bear-t9h1`
