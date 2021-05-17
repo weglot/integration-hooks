@@ -9,25 +9,27 @@ if (Object.values(config).some((s) => !s)) {
 
 const { originalLanguage, originalHost, languages, apiKey } = config;
 
-const special_slugs = {
-  detail_post:
-    "post/{{wf {&quot;path&quot;:&quot;slug&quot;,&quot;type&quot;:&quot;PlainText&quot;} }}",
-  detail_product:
-    "product/{{wf {&quot;path&quot;:&quot;slug&quot;,&quot;type&quot;:&quot;PlainText&quot;} }}/",
-  detail_category:
-    "category/{{wf {&quot;path&quot;:&quot;slug&quot;,&quot;type&quot;:&quot;PlainText&quot;} }}/",
-};
+const specialSlug =
+  "{{wf {&quot;path&quot;:&quot;slug&quot;,&quot;type&quot;:&quot;PlainText&quot;} }}";
 
-function getSpecialSlug(slug) {
-  return special_slugs[slug] || slug || "";
+function formatSlug(slug) {
+  if (!slug) {
+    return "";
+  }
+  if (!slug.startsWith("detail_")) {
+    return slug;
+  }
+  // like detail_post, detail_product or detail_category
+  const [, name] = slug.split("detail_");
+  return `${name}/${specialSlug}`;
 }
 
 function getSlug(page, pages) {
   const parent = pages.find((p) => p._id === page.parent);
   if (!page.parent || !parent) {
-    return `/${getSpecialSlug(page.slug)}`;
+    return `/${formatSlug(page.slug)}`;
   }
-  return `${getSlug(parent, pages)}/${getSpecialSlug(page.slug)}`;
+  return `${getSlug(parent, pages)}/${formatSlug(page.slug)}`;
 }
 
 function snippet(slug) {
