@@ -1,6 +1,6 @@
 const axios = require("axios");
 const config = require("./config");
-const { hreflang, createSnippet } = require("../utils");
+const { hreflang, createSnippet, formatHost } = require("../utils");
 
 if (Object.values(config).some((s) => !s)) {
   console.log("Some config is missing");
@@ -18,12 +18,23 @@ const special_slugs = {
     "category/{{wf {&quot;path&quot;:&quot;slug&quot;,&quot;type&quot;:&quot;PlainText&quot;} }}/",
 };
 
-function snippet(slug) {
-  if (!slug) slug = "";
-  if (special_slugs[slug]) slug = special_slugs[slug];
-  const snippet = createSnippet(apiKey);
+function getSpecialSlug(slug) {
+  return special_slugs[slug] || slug || "";
+}
 
-  const originalTag = hreflang(`${originalHost}${slug}`, originalLanguage);
+function getSlug(page, pages) {
+  const parent = pages.find((p) => p._id === page.parent);
+  if (!page.parent || !parent) {
+    return `/${getSpecialSlug(page.slug)}`;
+  }
+  return `${getSlug(parent, pages)}/${getSpecialSlug(page.slug)}`;
+}
+
+function snippet(slug) {
+  const snippet = createSnippet(apiKey);
+  const host = formatHost(originalHost);
+
+  const originalTag = hreflang(`${host}${slug}`, originalLanguage);
   const tags = languages
     .map((lang) => {
       const transHost = config.translatedHost.replace("LANG_CODE", lang);
@@ -67,11 +78,12 @@ const wfapi = axios.create({
   console.log(`Updating ${dom.pages.length} pages...`);
 
   await Promise.all(
-    dom.pages.map((page) =>
-      wfapi
+    dom.pages.map((page) => {
+      const slug = getSlug(page, dom.pages);
+      return wfapi
         .put(
           `/api/pages/${page._id}`,
-          JSON.stringify({ ...page, head: snippet(page.slug) }),
+          JSON.stringify({ ...page, head: snippet(slug) }),
           {
             headers: {
               "Content-Type": "application/json",
@@ -80,10 +92,10 @@ const wfapi = axios.create({
           }
         )
         .then((res) =>
-          console.log(`${res.status === 200 ? "OK" : "Failed"} - ${page.slug}`)
+          console.log(`${res.status === 200 ? "OK" : "Failed"} - ${slug}`)
         )
-        .catch((res) => console.log(res))
-    )
+        .catch((res) => console.log(res));
+    })
   );
 
   console.log("Done!");
