@@ -40,7 +40,7 @@ function snippet(slug) {
   const tags = languages
     .map((lang) => {
       const transHost = config.translatedHost.replace("LANG_CODE", lang);
-      return hreflang(`${transHost}${slug}`, lang);
+      return hreflang(`${formatHost(transHost)}${slug}`, lang);
     })
     .join("\n");
 
