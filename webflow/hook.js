@@ -42,9 +42,9 @@ function snippet(slug) {
       const transHost = config.translatedHost.replace("LANG_CODE", lang);
       return hreflang(`${formatHost(transHost)}${slug}`, lang);
     })
-    .join("\n");
+    .join("");
 
-  return `\n${originalTag}\n${tags}\n${snippet}\n`;
+  return `${originalTag}${tags}${snippet}`;
 }
 
 const wfapi = axios.create({
