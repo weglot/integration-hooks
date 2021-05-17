@@ -45,3 +45,6 @@ your Webflow or Squarespace website
 ### Run
 
 When you are ready, run `node squarespace/hook.js` or `node webflow/hook.js`
+
+This script edit your website but it doesn't publish it if it's necessary, like
+on Webflow
