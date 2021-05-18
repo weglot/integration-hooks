@@ -16,6 +16,9 @@ your Webflow or Squarespace website
 3. Fill global options from `config.js`
 
    - `apiKey`: Weglot API Key from your dashboard setup
+
+  Only Squarespace:
+
    - `originalHost`: your public website URL (eg. https://www.example.com)
    - `translatedHost`: your public website URL with `LANG_CODE` instead of
      language code (eg. https://LANG_CODE.example.com)

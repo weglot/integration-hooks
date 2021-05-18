@@ -1,50 +1,63 @@
 const axios = require("axios");
 const config = require("./config");
-const { hreflang, createSnippet, formatHost } = require("../utils");
+const { hreflang, createSnippet, getSlugs, getSettings } = require("../utils");
 
 if (Object.values(config).some((s) => !s)) {
   console.log("Some config is missing");
   process.exit(1);
 }
 
-const { originalLanguage, originalHost, languages, apiKey } = config;
+const { projectName, apiKey } = config;
 
-const specialSlug =
-  "{{wf {&quot;path&quot;:&quot;slug&quot;,&quot;type&quot;:&quot;PlainText&quot;} }}";
+function getTranslatedSlug(slug, language_to) {
+  if (!config.slugs[language_to]) {
+    return slug;
+  }
+  return config.slugs[language_to][slug] || slug;
+}
 
-function formatSlug(slug) {
+function formatSlug(slug, language_to) {
   if (!slug) {
     return "";
   }
   if (!slug.startsWith("detail_")) {
-    return slug;
+    return getTranslatedSlug(slug, language_to);
   }
   // like detail_post, detail_product or detail_category
-  const [, name] = slug.split("detail_");
-  return `${name}/${specialSlug}`;
+  const name = getTranslatedSlug(slug.split("detail_").pop(), language_to);
+  return `${name}/{{wf {&quot;path&quot;:&quot;slug&quot;,&quot;type&quot;:&quot;PlainText&quot;} }}`;
 }
 
-function getSlug(page, pages) {
-  const parent = pages.find((p) => p._id === page.parent);
+// Recursively construct url pathname with slugs levels
+function getSlug(page, language_to) {
+  const parent = config.pages.find((p) => p._id === page.parent);
+  const slug = formatSlug(page.slug, language_to);
   if (!page.parent || !parent) {
-    return `/${formatSlug(page.slug)}`;
+    return `/${slug}`;
   }
-  return `${getSlug(parent, pages)}/${formatSlug(page.slug)}`;
+  return `${getSlug(parent, language_to)}/${slug}`;
 }
 
-function snippet(slug) {
+// Generate snippet with - JS, - original hreflang, - all translated hreflang versions
+function snippet(page) {
   const snippet = createSnippet(apiKey);
-  const host = formatHost(originalHost);
 
-  const originalTag = hreflang(`${host}${slug}`, originalLanguage);
+  const { language_from, languages, host } = config.settings;
+
+  const originalUrl = `https://${host}${getSlug(page)}`;
+  const originalTag = hreflang(originalUrl, language_from);
+
   const tags = languages
-    .map((lang) => {
-      const transHost = config.translatedHost.replace("LANG_CODE", lang);
-      return hreflang(`${formatHost(transHost)}${slug}`, lang);
-    })
+    .filter(({ connect_host_destination }) => connect_host_destination)
+    .map(({ language_to, custom_code, connect_host_destination }) =>
+      hreflang(
+        `https://${connect_host_destination.host}${getSlug(page, language_to)}`,
+        custom_code || language_to
+      )
+    )
     .join("");
 
-  return `${originalTag}${tags}${snippet}`;
+  return `${snippet}${originalTag}${tags}`;
 }
 
 const wfapi = axios.create({
@@ -57,35 +70,69 @@ const wfapi = axios.create({
   },
 });
 
-(async () => {
-  const designer = await wfapi
-    .get(`/design/${config.projectName}`)
-    .then((res) => res.data);
-  console.log(`Searching for CSRF Token...`);
+async function getCSRF() {
+  try {
+    const designer = await wfapi
+      .get(`/design/${projectName}`)
+      .then((res) => res.data);
+    console.log(`Searching for CSRF Token...`);
 
-  const matches = designer.match(/<meta name="_csrf" content="([^"]+)">/);
-  if (!matches) {
-    console.log("Unable to get csrf");
+    const matches = designer.match(/<meta name="_csrf" content="([^"]+)">/);
+    if (!matches) {
+      console.log("Unable to get csrf");
+      process.exit();
+    }
+    const [, csrf] = matches;
+    return csrf;
+  } catch (_) {
+    console.log("Unable to login, please check your config values.");
     process.exit();
   }
-  const [, csrf] = matches;
+}
+
+(async () => {
+  // Get Weglot settings
+  try {
+    config.settings = await getSettings(config.apiKey.split("wg_").pop());
+  } catch (_) {
+    console.log(
+      "Your Weglot API key seems wrong. Please check your config file."
+    );
+    process.exit();
+  }
+
+  // Get Weglot translated slugs
+  try {
+    if (config.settings.versions) {
+      const { slugTranslation } = config.settings.versions;
+      const slugs = await Promise.all(
+        getSlugs(config.apiKey, config.settings.languages, slugTranslation)
+      );
+      config.slugs = Object.assign(...slugs);
+    }
+  } catch (_) {}
+
+  // Get CSRF
+  const csrf = await getCSRF();
   console.log("CSRF found!");
 
+  // Get Webflow data
   const dom = await wfapi
-    .get(`/api/sites/${config.projectName}/dom?t=${Date.now()}`, {
+    .get(`/api/sites/${projectName}/dom?t=${Date.now()}`, {
       headers: { "X-Requested-With": "XMLHttpRequest" },
     })
     .then((res) => res.data);
 
+  config.pages = dom.pages;
   console.log(`Updating ${dom.pages.length} pages...`);
 
+  // Update all pages with generated snippet
   await Promise.all(
-    dom.pages.map((page) => {
-      const slug = getSlug(page, dom.pages);
-      return wfapi
+    dom.pages.map((page) =>
+      wfapi
         .put(
           `/api/pages/${page._id}`,
-          JSON.stringify({ ...page, head: snippet(slug) }),
+          JSON.stringify({ ...page, head: snippet(page) }),
           {
             headers: {
               "Content-Type": "application/json",
@@ -96,8 +143,8 @@ const wfapi = axios.create({
         .then((res) =>
           console.log(`${res.status === 200 ? "OK" : "Failed"} - ${slug}`)
         )
-        .catch((res) => console.log(res));
-    })
+        .catch((res) => console.log(res))
+    )
   );
 
   console.log("Done!");
