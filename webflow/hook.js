@@ -141,7 +141,7 @@ async function getCSRF() {
           }
         )
         .then((res) =>
-          console.log(`${res.status === 200 ? "OK" : "Failed"} - ${slug}`)
+          console.log(`${res.status === 200 ? "OK" : "Failed"} - ${page.slug}`)
         )
         .catch((res) => console.log(res))
     )
