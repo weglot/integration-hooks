@@ -5,4 +5,5 @@ module.exports = {
 
   wflogin: "", // wflogin cookie content
   wfsession: "", // wfsession cookie content
+  projectName: "", // url slug
 };

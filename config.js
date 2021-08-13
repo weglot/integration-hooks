@@ -6,6 +6,4 @@ module.exports = {
 
   originalLanguage: "en",
   languages: ["fr", "es", "de"],
-
-  projectName: "", // url slug
 };

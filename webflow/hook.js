@@ -2,8 +2,14 @@ const axios = require("axios");
 const config = require("./config");
 const { hreflang, createSnippet, getSlugs, getSettings } = require("../utils");
 
-if (Object.values(config).some((s) => !s)) {
-  console.log("Some config is missing");
+const missingConfigKeys = [];
+Object.keys(config).forEach(key => {
+  if (!config[key]) {
+    missingConfigKeys.push(key);
+  }
+});
+if (missingConfigKeys.length > 0) {
+  console.log(`Some config is missing: ${missingConfigKeys.join(', ')}`);
   process.exit(1);
 }
 

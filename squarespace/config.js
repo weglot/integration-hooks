@@ -3,6 +3,7 @@ const global = require("../config");
 module.exports = {
   ...global,
 
-  user: "",
-  password: "",
+  user: "", // admin email
+  password: "", // admin password
+  projectName: "", // url slug
 };

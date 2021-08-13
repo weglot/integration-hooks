@@ -27,7 +27,7 @@ your Webflow or Squarespace website
 
 4. Fill specific options from your platform:
 
-#### Webflow
+#### Webflow (to be set in webflow/config.js)
 
 - `wflogin`/`wfsession`: In your Webflow admin page, open Chrome
   devtools (right click "inspect") > Application tab > Cookies > webflow.com,
@@ -37,7 +37,7 @@ your Webflow or Squarespace website
   get current URL and remove https://webflow.com/design/ first part, you should
   get something as `my-first-project-a898b8`
 
-#### Squarespace
+#### Squarespace (to be set in squarespace/config.js)
 
 - `user`: Squarespace admin email
 - `password`: Squarespace admin password
