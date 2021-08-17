@@ -16,6 +16,9 @@ if (missingConfigKeys.length > 0) {
 const { projectName, apiKey } = config;
 
 function getTranslatedSlug(slug, language_to) {
+  if (!config.slugs) {
+    return slug;
+  }
   if (!config.slugs[language_to]) {
     return slug;
   }
