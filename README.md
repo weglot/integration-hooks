@@ -3,6 +3,11 @@
 Script to automatically inject _hreflang_ tags and snippets into all pages into
 your Webflow or Squarespace website
 
+### NOTE: 
+
+Before running this script, please be aware that any existing text/scripts inside your Webflow or Squarespace page headers will be overwritten.
+
+
 ### Requirements
 
 `node >=10`
