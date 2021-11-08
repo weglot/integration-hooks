@@ -48,3 +48,13 @@ When you are ready, run `node squarespace/hook.js` or `node webflow/hook.js`
 
 This script edit your website but it doesn't publish it if it's necessary, like
 on Webflow
+
+### Troubleshooting
+
+#### Webflow
+
+**Some slugs aren't translated**
+
+If you use collections, slugs are automatically generated from the parent page
+and Webflow is using a dynamic "field" to populate slugs so *they can't be
+translated*.
