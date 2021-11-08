@@ -1,7 +1,5 @@
-const global = require("../config");
-
 module.exports = {
-  ...global,
+  apiKey: "", // weglot api_key
 
   originalHost: "https://www.weglot-translate-wbflow.com/",
   translatedHost: "https://LANG_CODE.weglot-translate-wbflow.com/",

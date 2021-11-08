@@ -1,7 +1,5 @@
-const global = require("../config");
-
 module.exports = {
-  ...global,
+  apiKey: "", // weglot api_key
 
   wflogin: "", // wflogin cookie content
   wfsession: "", // wfsession cookie content

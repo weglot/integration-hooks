@@ -13,14 +13,11 @@ your Webflow or Squarespace website
 
 2. Install dependencies `yarn` or `npm i`
 
-3. Fill global options from `config.js`
-
-  - `apiKey`: Weglot API Key from your dashboard setup
-
-4. Fill specific options from your platform:
+3. Fill specific options from your platform:
 
 #### Webflow (to be set in webflow/config.js)
 
+- `apiKey`: Weglot API Key from your [Weglot dashboard](https://dashboard.weglot.com/settings/setup)
 - `wflogin`/`wfsession`: In your Webflow admin page, open Chrome
   devtools (right click "inspect") > Application tab > Cookies > webflow.com,
   get content from wflogin (eg. 10101894633456) and wfsession
@@ -31,6 +28,7 @@ your Webflow or Squarespace website
 
 #### Squarespace (to be set in squarespace/config.js)
 
+- `apiKey`: Weglot API Key from your [Weglot dashboard](https://dashboard.weglot.com/settings/setup)
 - `originalHost`: your public website URL (eg. https://www.example.com)
 - `translatedHost`: your public website URL with `LANG_CODE` instead of
  language code (eg. https://LANG_CODE.example.com)
