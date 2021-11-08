@@ -56,3 +56,9 @@ on Webflow
 If you use collections, slugs are automatically generated from the parent page
 and Webflow is using a dynamic "field" to populate slugs so *they can't be
 translated*.
+
+**I broke all my custom head tags!**
+
+Go to the *Settings* tab on Webflow design editor then *Backups* and choose an
+old published version of your website to restore it. More information on
+[Webflow documentation](https://university.webflow.com/lesson/backups#preview-and-restore-backup-versions)
