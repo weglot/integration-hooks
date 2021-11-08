@@ -2,14 +2,12 @@ const axios = require("axios");
 const config = require("./config");
 const { hreflang, createSnippet, getSlugs, getSettings } = require("../utils");
 
-const missingConfigKeys = [];
-Object.keys(config).forEach(key => {
-  if (!config[key]) {
-    missingConfigKeys.push(key);
-  }
-});
+const missingConfigKeys = Object.keys(config).filter(
+  (key) => config[key] === ""
+);
+
 if (missingConfigKeys.length > 0) {
-  console.log(`Some config is missing: ${missingConfigKeys.join(', ')}`);
+  console.log(`Some config is missing: ${missingConfigKeys.join(", ")}`);
   process.exit(1);
 }
 
@@ -66,7 +64,7 @@ function snippet(page) {
     )
     .join("");
 
-  return `${snippet}${originalTag}${tags}`;
+  return `${config.overwrite ? "" : page.head}${snippet}${originalTag}${tags}`;
 }
 
 const wfapi = axios.create({
@@ -75,7 +73,7 @@ const wfapi = axios.create({
     Accept: "application/json, text/javascript, */*; q=0.01",
     "User-Agent":
       "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36",
-    Cookie: `wflogin=${config.wflogin}; wfsession=${config.wfsession}`,
+    Cookie: `wflogin=${config.wflogin};wfsession=${config.wfsession}`,
   },
 });
 
@@ -137,7 +135,7 @@ async function getCSRF() {
 
   // Update all pages with generated snippet
   await Promise.all(
-    dom.pages.map((page) =>
+    dom.pages.map((page) => {
       wfapi
         .put(
           `/api/pages/${page._id}`,
@@ -150,11 +148,16 @@ async function getCSRF() {
           }
         )
         .then((res) =>
-          console.log(`${res.status === 200 ? "OK" : "Failed"} - ${page.slug}`)
+          console.log(
+            `${res.status === 200 ? "OK" : "Failed"} - ${getSlug(page)}`
+          )
         )
-        .catch((res) => console.log(res))
-    )
+        .catch((res) => console.log(res));
+    })
   );
 
-  console.log("Done!");
+  console.log(`Done !
+------
+Please check added config on your Webflow design editor and publish new version!
+`);
 })();
