@@ -17,14 +17,6 @@ your Webflow or Squarespace website
 
   - `apiKey`: Weglot API Key from your dashboard setup
 
-  Only Squarespace:
-
-   - `originalHost`: your public website URL (eg. https://www.example.com)
-   - `translatedHost`: your public website URL with `LANG_CODE` instead of
-     language code (eg. https://LANG_CODE.example.com)
-   - `originalLanguage`: your original language (eg. 'en')
-   - `languages`: array of your languages (eg. ['fr', 'de', 'es'])
-
 4. Fill specific options from your platform:
 
 #### Webflow (to be set in webflow/config.js)
@@ -39,6 +31,11 @@ your Webflow or Squarespace website
 
 #### Squarespace (to be set in squarespace/config.js)
 
+- `originalHost`: your public website URL (eg. https://www.example.com)
+- `translatedHost`: your public website URL with `LANG_CODE` instead of
+ language code (eg. https://LANG_CODE.example.com)
+- `originalLanguage`: your original language (eg. 'en')
+- `languages`: array of your languages (eg. ['fr', 'de', 'es'])
 - `user`: Squarespace admin email
 - `password`: Squarespace admin password
 - `projectName`: Slug from Squarespace admin. Go to Squarespace admin page and get
