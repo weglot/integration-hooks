@@ -68,7 +68,8 @@ function snippet(page) {
     )
     .join("");
 
-  return `${config.overwrite ? "" : page.head}${snippet}${originalTag}${tags}`;
+  const headContent = config.overwrite ? "" : page.head;
+  return `${headContent}<!--Weglot-->${snippet}${originalTag}${tags}<!--/Weglot-->`;
 }
 
 (async () => {
