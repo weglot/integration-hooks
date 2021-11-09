@@ -1,5 +1,12 @@
-const axios = require("axios");
 const config = require("./config");
+const {
+  getCSRF,
+  getDOM,
+  updatePage,
+  getCollectionItems,
+  updateCollection,
+  updateCollectionItem,
+} = require("./requests");
 const { hreflang, createSnippet, getSlugs, getSettings } = require("../utils");
 
 const missingConfigKeys = Object.keys(config).filter(
@@ -11,28 +18,25 @@ if (missingConfigKeys.length > 0) {
   process.exit(1);
 }
 
-const { projectName, apiKey } = config;
-
-function getTranslatedSlug(slug, language_to) {
-  if (!config.slugs) {
+function getTranslatedSlug(slug, language) {
+  if (!config.slugs || !config.slugs[language]) {
     return slug;
   }
-  if (!config.slugs[language_to]) {
-    return slug;
-  }
-  return config.slugs[language_to][slug] || slug;
+  return config.slugs[language][slug] || slug;
 }
 
-function formatSlug(slug, language_to) {
+function formatSlug(slug, language) {
   if (!slug) {
     return "";
   }
   if (!slug.startsWith("detail_")) {
-    return getTranslatedSlug(slug, language_to);
+    return getTranslatedSlug(slug, language);
   }
   // like detail_post, detail_product or detail_category
-  const name = getTranslatedSlug(slug.split("detail_").pop(), language_to);
-  return `${name}/{{wf {&quot;path&quot;:&quot;slug&quot;,&quot;type&quot;:&quot;PlainText&quot;} }}`;
+  const name = getTranslatedSlug(slug.split("detail_").pop(), language);
+  const path =
+    config.slugs.length && language ? `translated-slug-${language}` : "slug";
+  return `${name}/{{wf {&quot;path&quot;:&quot;${path}&quot;,&quot;type&quot;:&quot;PlainText&quot;} }}`;
 }
 
 // Recursively construct url pathname with slugs levels
@@ -47,7 +51,7 @@ function getSlug(page, language_to) {
 
 // Generate snippet with - JS, - original hreflang, - all translated hreflang versions
 function snippet(page) {
-  const snippet = createSnippet(apiKey);
+  const snippet = createSnippet(config.apiKey);
 
   const { language_from, languages, host } = config.settings;
 
@@ -65,36 +69,6 @@ function snippet(page) {
     .join("");
 
   return `${config.overwrite ? "" : page.head}${snippet}${originalTag}${tags}`;
-}
-
-const wfapi = axios.create({
-  baseURL: "https://webflow.com/",
-  headers: {
-    Accept: "application/json, text/javascript, */*; q=0.01",
-    "User-Agent":
-      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36",
-    Cookie: `wflogin=${config.wflogin};wfsession=${config.wfsession}`,
-  },
-});
-
-async function getCSRF() {
-  try {
-    const designer = await wfapi
-      .get(`/design/${projectName}`)
-      .then((res) => res.data);
-    console.log(`Searching for CSRF Token...`);
-
-    const matches = designer.match(/<meta name="_csrf" content="([^"]+)">/);
-    if (!matches) {
-      console.log("Unable to get csrf");
-      process.exit();
-    }
-    const [, csrf] = matches;
-    return csrf;
-  } catch (_) {
-    console.log("Unable to login, please check your config values.");
-    process.exit();
-  }
 }
 
 (async () => {
@@ -123,41 +97,93 @@ async function getCSRF() {
   const csrf = await getCSRF();
   console.log("CSRF found!");
 
-  // Get Webflow data
-  const dom = await wfapi
-    .get(`/api/sites/${projectName}/dom?t=${Date.now()}`, {
-      headers: { "X-Requested-With": "XMLHttpRequest" },
-    })
-    .then((res) => res.data);
+  console.log("\nGet Webflow pages...");
+  const dom = await getDOM();
+  console.log("OK");
+
+  if (config.slugs && Object.keys(config.slugs).length) {
+    console.log(`\nUpdating ${dom.database.collections.length} collections...`);
+    for (const collection of dom.database.collections) {
+      console.log(`\n> ${collection.name}`);
+      const { languages } = config.settings;
+
+      console.log(`>> Set ${languages.length} custom fields...`);
+      const missingLanguages = languages
+        .filter(
+          ({ language_to }) =>
+            !collection.fields.some(
+              (field) => field.name === `Translated slug ${language_to}`
+            )
+        )
+        .map(({ language_to }) => ({
+          id: `not-persisted-${Math.random().toString(36).slice(2)}`,
+          required: false,
+          validations: { singleLine: true },
+          type: "PlainText",
+          name: `Translated slug ${language_to}`,
+        }));
+      if (missingLanguages.length) {
+        collection.fields.push(...missingLanguages);
+        await updateCollection(collection, csrf);
+      }
+      console.log("OK");
+
+      console.log(">> Set collection slugs");
+      const { items } = await getCollectionItems(collection._id);
+      for (const item of items) {
+        for (const { language_to } of languages) {
+          const translatedSlug = formatSlug(item.slug, language_to);
+          item[`translated-slug-${language_to}`] = translatedSlug;
+        }
+        const itemId = item._id;
+        [
+          "updated-on",
+          "updated-by",
+          "created-on",
+          "created-by",
+          "published-on",
+          "published-by",
+          "_cid",
+          "_id",
+        ].map((k) => delete item[k]);
+        const payload = {
+          staging: true, // Need to be published
+          fields: item,
+        };
+        await updateCollectionItem(payload, itemId, collection._id, csrf);
+        console.log(`OK - /${collection.slug}/${item.slug}`);
+      }
+    }
+  } else {
+    console.log("\nNo translated slug, didn't update collections and items.");
+  }
 
   config.pages = dom.pages;
-  console.log(`Updating ${dom.pages.length} pages...`);
+  console.log(`\nUpdating ${dom.pages.length} pages...\n`);
 
   // Update all pages with generated snippet
   await Promise.all(
-    dom.pages.map((page) => {
-      wfapi
-        .put(
-          `/api/pages/${page._id}`,
-          JSON.stringify({ ...page, head: snippet(page) }),
-          {
-            headers: {
-              "Content-Type": "application/json",
-              "X-XSRF-Token": csrf,
-            },
-          }
-        )
+    dom.pages.map((page) =>
+      updatePage(
+        page._id,
+        JSON.stringify({ ...page, head: snippet(page) }),
+        csrf
+      )
         .then((res) =>
           console.log(
             `${res.status === 200 ? "OK" : "Failed"} - ${getSlug(page)}`
           )
         )
-        .catch((res) => console.log(res));
-    })
+        .catch((res) => console.log(res))
+    )
   );
 
-  console.log(`Done !
+  console.log(`
+Done !
 ------
 Please check added config on your Webflow design editor and publish new version!
+Read Troubleshooting section in README if you have any problem
+
+contact: support@weglot.com
 `);
 })();

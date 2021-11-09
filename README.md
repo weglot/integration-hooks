@@ -3,6 +3,32 @@
 Script to automatically inject _hreflang_ tags and snippets into all pages into
 your Webflow or Squarespace website
 
+### Disclaimer
+
+This script automatically edit your website, please use it at your own risk. We
+encourage you to read the code.
+
+Here is a summary of what it's doing;
+
+**Squarespace**
+
+We connect to your git's Squarespace with username and password and add a commit
+named "WEGLOT - Add hreflang tags". This commit add script and hreflang tags to
+configure Weglot properly into the `site.region` file.
+
+Delete this commit to rollback this hook.
+
+**Webflow**
+
+We use your cookie config to send some requests to your Webflow editor:
+
+- We *add one custom field for each translated language* to all collections
+  in order to store translated slugs.
+- We fill added custom fields to all items from all collections with the right 
+  translated slug.
+- We add script and hreflang tags to all custom head pages with right
+  dynamic slugs.
+
 ### Requirements
 
 `node >=10`
@@ -50,12 +76,6 @@ on Webflow
 ### Troubleshooting
 
 #### Webflow
-
-**Some slugs aren't translated**
-
-If you use collections, slugs are automatically generated from the parent page
-and Webflow is using a dynamic "field" to populate slugs so *they can't be
-translated*.
 
 **I broke all my custom head tags!**
 
