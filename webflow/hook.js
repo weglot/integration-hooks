@@ -84,22 +84,25 @@ function snippet(page) {
   }
 
   // Get Weglot translated slugs
-  try {
-    if (config.settings.versions) {
-      const { slugTranslation } = config.settings.versions;
-      const slugs = await Promise.all(
-        getSlugs(config.apiKey, config.settings.languages, slugTranslation)
-      );
-      config.slugs = Object.assign(...slugs);
-    }
-  } catch (_) {}
+  if (config.settings.versions) {
+    const { slugTranslation } = config.settings.versions;
+    const slugs = await Promise.all(
+      getSlugs(config.apiKey, config.settings.languages, slugTranslation)
+    ).catch(() => ({}));
+    config.slugs = Object.assign(...slugs);
+  }
 
   // Get CSRF
   const csrf = await getCSRF();
   console.log("CSRF found!");
 
   console.log("\nGet Webflow pages...");
-  const dom = await getDOM();
+  const dom = await getDOM().catch(() => {
+    console.log(
+      "Unable to login to your Webflow account, please check wfsession cookie"
+    );
+    process.exit(1);
+  });
   console.log("OK");
 
   if (config.slugs && Object.keys(config.slugs).length) {
