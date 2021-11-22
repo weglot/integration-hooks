@@ -1,16 +1,18 @@
-## integration-hooks for Weglot
+# integration-hooks for Weglot
 
 Script to automatically inject _hreflang_ tags and snippets into all pages into
 your Webflow or Squarespace website
 
-### Disclaimer
+<hr>
+
+## Disclaimer
 
 This script automatically edit your website, please use it at your own risk. We
 encourage you to read the code.
 
 Here is a summary of what it's doing;
 
-**Squarespace**
+### Squarespace
 
 We connect to your git's Squarespace with username and password and add a commit
 named "WEGLOT - Add hreflang tags". This commit add script and hreflang tags to
@@ -18,7 +20,7 @@ configure Weglot properly into the `site.region` file.
 
 Delete this commit to rollback this hook.
 
-**Webflow**
+### Webflow
 
 We use your cookie config to send some requests to your Webflow editor:
 
@@ -29,11 +31,13 @@ We use your cookie config to send some requests to your Webflow editor:
 - We add script and hreflang tags to all custom head pages with right
   dynamic slugs.
 
-### Requirements
+<hr>
+
+## Requirements
 
 `node >=10`
 
-### Setup
+## Setup
 
 1. Clone repo `git clone https://github.com/weglot/integration-hooks.git`
 
@@ -41,7 +45,7 @@ We use your cookie config to send some requests to your Webflow editor:
 
 3. Fill specific options from your platform:
 
-#### Webflow (to be set in webflow/config.js)
+### Webflow (to be set in webflow/config.js)
 
 - `apiKey`: Weglot API Key from your [Weglot dashboard](https://dashboard.weglot.com/settings/setup)
 - `wflogin`/`wfsession`: In your Webflow admin page, open Chrome
@@ -54,7 +58,7 @@ We use your cookie config to send some requests to your Webflow editor:
 - `overwrite`: if true, we replace all content in all custom head, false we 
   append content to the existent. default to `false`
 
-#### Squarespace (to be set in squarespace/config.js)
+### Squarespace (to be set in squarespace/config.js)
 
 - `apiKey`: Weglot API Key from your [Weglot dashboard](https://dashboard.weglot.com/settings/setup)
 - `originalHost`: your public website URL (eg. https://www.example.com)
@@ -68,16 +72,16 @@ We use your cookie config to send some requests to your Webflow editor:
   first piece of current URL: https://GET-THIS.squarespace.com/config/...
   eg. `lobster-bear-t9h1`
 
-### Run
+## Run
 
 When you are ready, run `node squarespace/hook.js` or `node webflow/hook.js`
 
 This script edit your website but it doesn't publish it if it's necessary, like
 on Webflow
 
-### Troubleshooting
+## Troubleshooting
 
-#### Webflow
+### Webflow
 
 **I broke all my custom head tags!**
 
