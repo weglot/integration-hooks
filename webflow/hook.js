@@ -35,7 +35,9 @@ function formatSlug(slug, language) {
   // like detail_post, detail_product or detail_category
   const name = getTranslatedSlug(slug.split("detail_").pop(), language);
   const path =
-    config.slugs.length && language ? `translated-slug-${language}` : "slug";
+    Object.keys(config.slugs).length && language
+      ? `translated-slug-${language}`
+      : "slug";
   return `${name}/{{wf {&quot;path&quot;:&quot;${path}&quot;,&quot;type&quot;:&quot;PlainText&quot;} }}`;
 }
 
