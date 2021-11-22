@@ -70,8 +70,17 @@ function snippet(page) {
     )
     .join("");
 
-  const headContent = config.overwrite ? "" : page.head;
-  return `${headContent}<!--Weglot-->${snippet}${originalTag}${tags}<!--/Weglot-->`;
+  if (!tags) {
+    return page.head;
+  }
+
+  const html = `<!--Weglot-->${snippet}${originalTag}${tags}<!--/Weglot-->`;
+  if (!config.overwrite && page.head) {
+    // Remove existing tag before adding new one
+    const head = page.head.replace(/<!--Weglot-->([\s\S]+)<!--\/Weglot-->/, "");
+    return `${head}${html}`;
+  }
+  return html;
 }
 
 (async () => {
