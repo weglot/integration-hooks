@@ -116,7 +116,11 @@ function snippet(page) {
   });
   console.log("OK");
 
-  if (config.slugs && Object.keys(config.slugs).length) {
+  if (
+    config.slugs &&
+    Object.keys(config.slugs).length &&
+    dom.database.collections
+  ) {
     console.log(`\nUpdating ${dom.database.collections.length} collections...`);
     for (const collection of dom.database.collections) {
       console.log(`\n> ${collection.name}`);
