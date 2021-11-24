@@ -35,9 +35,7 @@ function formatSlug(slug, language) {
   // like detail_post, detail_product or detail_category
   const name = getTranslatedSlug(slug.split("detail_").pop(), language);
   const path =
-    Object.keys(config.slugs).length && language
-      ? `translated-slug-${language}`
-      : "slug";
+    config.translateSlugs && language ? `translated-slug-${language}` : "slug";
   return `${name}/{{wf {&quot;path&quot;:&quot;${path}&quot;,&quot;type&quot;:&quot;PlainText&quot;} }}`;
 }
 
@@ -96,7 +94,7 @@ function snippet(page) {
 
   // Get Weglot translated slugs
   if (config.settings.versions) {
-    const { slugTranslation } = config.settings.versions;
+    const { slugTranslation = 1 } = config.settings.versions;
     const slugs = await Promise.all(
       getSlugs(config.apiKey, config.settings.languages, slugTranslation)
     ).catch(() => ({}));
@@ -116,11 +114,12 @@ function snippet(page) {
   });
   console.log("OK");
 
-  if (
+  config.translateSlugs =
     config.slugs &&
     Object.keys(config.slugs).length &&
-    dom.database.collections
-  ) {
+    dom.database.collections;
+
+  if (config.translateSlugs) {
     console.log(`\nUpdating ${dom.database.collections.length} collections...`);
     for (const collection of dom.database.collections) {
       console.log(`\n> ${collection.name}`);
