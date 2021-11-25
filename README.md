@@ -52,8 +52,8 @@ We use your cookie config to send some requests to your Webflow editor:
   devtools (right click "inspect") > Application tab > Cookies > webflow.com,
   get content from wflogin (eg. 10101894633456) and wfsession
   (long random strings) cookies
-- `projectName`: Slug from webflow admin. Go to webflow admin page > Design mode >
-  get current URL and remove https://webflow.com/design/ first part, you should
+- `projectName`: Slug from Webflow admin. Go to Webflow admin page > Design mode,
+  get current URL and remove `https://webflow.com/design/` first part, you should
   get something as `my-first-project-a898b8`
 - `overwrite`: default to `false`
   - `true`, we replace all content in all custom head
