@@ -72,10 +72,13 @@ function snippet(page) {
     return page.head;
   }
 
-  const html = `<!--Weglot-->${snippet}${originalTag}${tags}<!--/Weglot-->`;
+  const html = `<!--Weglot-hv2-->${snippet}${originalTag}${tags}<!--/Weglot-->`;
   if (!config.overwrite && page.head) {
     // Remove existing tag before adding new one
-    const head = page.head.replace(/<!--Weglot-->([\s\S]+)<!--\/Weglot-->/, "");
+    const head = page.head.replace(
+      /<!--Weglot(-hv\d+)?-->([\s\S]+)<!--\/Weglot-->/,
+      ""
+    );
     return `${head}${html}`;
   }
   return html;
