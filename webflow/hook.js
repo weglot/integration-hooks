@@ -120,6 +120,7 @@ function snippet(page) {
   config.translateSlugs =
     config.slugs &&
     Object.keys(config.slugs).length &&
+    dom.database &&
     dom.database.collections;
 
   if (config.translateSlugs) {
