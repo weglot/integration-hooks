@@ -61,11 +61,9 @@ function snippet(page) {
   const tags = languages
     .filter(({ connect_host_destination }) => connect_host_destination)
     .map(({ language_to, custom_code, connect_host_destination }) => {
-        const hreflang = custom_code || (language_to === "br" ? "pt-br" : "br");
-
         return hreflang(
           `https://${connect_host_destination.host}${getSlug(page, language_to)}`,
-          hreflang
+          custom_code || (language_to === "br" ? "pt-br" : language_to)
         );
       }
     )
