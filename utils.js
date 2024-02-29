@@ -1,3 +1,8 @@
+const readline = require("node:readline").createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
+
 const axios = require("axios");
 
 exports.hreflang = function hreflang(href, lang) {
@@ -25,8 +30,16 @@ exports.getSlugs = function getSlugs(apiKey, languages, version) {
   return languages.map(({ language_to }) =>
     axios
       .get(
-        `https://cdn-api.weglot.com/translations/slugs?api_key=${apiKey}&language_to=${language_to}&v=${version}`
+        `https://cdn-api-weglot.com/translations/slugs?api_key=${apiKey}&language_to=${language_to}&v=${version}`
       )
       .then((res) => ({ [language_to]: res.data }))
   );
+};
+
+exports.prompt = function prompt(question) {
+  return new Promise((res) => {
+    readline.question(question, (answer) => {
+      res(answer);
+    });
+  });
 };
