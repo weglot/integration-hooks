@@ -3,20 +3,18 @@ const axios = require("axios");
 const config = require("./config");
 
 const wfapi = axios.create({
-  baseURL: "https://webflow.com/",
+  baseURL: `https://${config.projectId}.design.webflow.com/`,
   headers: {
     Accept: "application/json, text/javascript, */*; q=0.01",
     "User-Agent":
       "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36",
-    Cookie: `wflogin=${config.wflogin};wfsession=${config.wfsession}`,
+    Cookie: `wflogin=${config.wflogin};wfdesignersession=${config.wfdesignersession}`,
   },
 });
 
 async function getCSRF() {
   try {
-    const designer = await wfapi
-      .get(`/design/${config.projectName}`)
-      .then((res) => res.data);
+    const designer = await wfapi.get(`/`).then((res) => res.data);
     console.log(`Searching for CSRF Token...`);
 
     const matches = designer.match(/<meta name="_csrf" content="([^"]+)">/);
@@ -34,7 +32,7 @@ async function getCSRF() {
 
 function getDOM() {
   return wfapi
-    .get(`/api/sites/${config.projectName}/dom?t=${Date.now()}`, {
+    .get(`/api/sites/${config.projectId}/dom?t=${Date.now()}`, {
       headers: { "X-Requested-With": "XMLHttpRequest" },
     })
     .then((res) => res.data);
@@ -61,7 +59,7 @@ function getCollectionItems(collectionId) {
       },
     })
     .then((res) => res.data)
-    .catch((err) => console.log(err));
+    .catch(() => ({ items: [] }));
 }
 
 function updateCollectionItem(item, itemId, collectionId, csrf) {
@@ -78,7 +76,7 @@ function updateCollectionItem(item, itemId, collectionId, csrf) {
       }
     )
     .then((res) => res.data)
-    .catch((err) => console.log(err));
+    .catch(() => ({}));
 }
 
 function updatePage(pageId, payload, csrf) {
